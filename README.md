@@ -5,7 +5,7 @@ PHP adapter for [Skybolt](https://github.com/JensRoland/skybolt) - High-performa
 ## Installation
 
 ```bash
-composer require skybolt/skybolt-php
+composer require jensroland/skybolt-php
 ```
 
 ## Prerequisites
