@@ -1,6 +1,6 @@
 {
     "name": "skybolt/skybolt-php",
-    "version": "3.0.0",
+    "version": "3.1.0",
     "description": "High-performance asset caching for multi-page applications",
     "type": "library",
     "authors": [

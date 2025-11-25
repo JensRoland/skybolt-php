@@ -11,11 +11,11 @@ namespace Skybolt;
  * optimized HTML tags with intelligent caching via Service Workers.
  *
  * @package Skybolt
- * @version 3.0.0
+ * @version 3.1.0
  */
 class Skybolt
 {
-    public const VERSION = '3.0.0';
+    public const VERSION = '3.1.0';
 
     /** @var array<string, mixed> */
     private array $map;
@@ -55,7 +55,7 @@ class Skybolt
     /**
      * Render CSS asset
      *
-     * On first visit: inlines CSS with data-sb-* attributes for caching
+     * On first visit: inlines CSS with sb-* attributes for caching
      * On repeat visit: outputs <link> tag (Service Worker serves from cache)
      *
      * @param string $entry Source file path (e.g., 'src/css/main.css')
@@ -78,8 +78,8 @@ class Skybolt
 
         // First visit - inline with cache attributes
         return '<style'
-            . ' data-sb-cache="' . $this->esc($entry) . ':' . $this->esc($asset['hash']) . '"'
-            . ' data-sb-url="' . $this->esc($url) . '">'
+            . ' sb-asset="' . $this->esc($entry) . ':' . $this->esc($asset['hash']) . '"'
+            . ' sb-url="' . $this->esc($url) . '">'
             . $asset['content']
             . '</style>';
     }
@@ -87,7 +87,7 @@ class Skybolt
     /**
      * Render JavaScript asset
      *
-     * On first visit: inlines JS with data-sb-* attributes for caching
+     * On first visit: inlines JS with sb-* attributes for caching
      * On repeat visit: outputs <script> tag (Service Worker serves from cache)
      *
      * @param string $entry Source file path (e.g., 'src/js/app.js')
@@ -112,8 +112,8 @@ class Skybolt
 
         // First visit - inline with cache attributes
         return '<script' . $typeAttr
-            . ' data-sb-cache="' . $this->esc($entry) . ':' . $this->esc($asset['hash']) . '"'
-            . ' data-sb-url="' . $this->esc($url) . '">'
+            . ' sb-asset="' . $this->esc($entry) . ':' . $this->esc($asset['hash']) . '"'
+            . ' sb-url="' . $this->esc($url) . '">'
             . $asset['content']
             . '</script>';
     }
