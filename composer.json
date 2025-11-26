@@ -1,5 +1,5 @@
 {
-    "name": "skybolt/skybolt-php",
+    "name": "jensroland/skybolt",
     "version": "3.1.0",
     "description": "High-performance asset caching for multi-page applications",
     "type": "library",

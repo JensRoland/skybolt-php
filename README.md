@@ -5,7 +5,7 @@ PHP adapter for [Skybolt](https://github.com/JensRoland/skybolt) - High-performa
 ## Installation
 
 ```bash
-composer require jensroland/skybolt-php
+composer require jensroland/skybolt
 ```
 
 ## Prerequisites
@@ -240,20 +240,23 @@ class SkyboltExtension extends AbstractExtension
 
 This package is maintained in the [Skybolt monorepo](https://github.com/JensRoland/skybolt) and automatically synced to [skybolt-php](https://github.com/JensRoland/skybolt-php).
 
-To publish a new version:
-
-1. In the **monorepo**, update the version in `packages/php/composer.json` and push to main
-2. Wait for the sync workflow to push changes to the split repo
-3. In the **split repo** (skybolt-php), create and push a tag:
+To publish a new version, run one command from the `packages/php` directory:
 
 ```sh
-git clone git@github.com:JensRoland/skybolt-php.git
-cd skybolt-php
-git tag v3.1.0
-git push origin v3.1.0
+./scripts/release.sh patch   # 3.1.0 → 3.1.1
+./scripts/release.sh minor   # 3.1.0 → 3.2.0
+./scripts/release.sh major   # 3.1.0 → 4.0.0
 ```
 
-Packagist auto-updates via webhook when you push tags. The `publish.yml` GitHub Action validates the package and will notify on failure.
+This automatically:
+
+1. Bumps the version in `VERSION`, `composer.json`, and `src/Skybolt.php`
+2. Commits and pushes to the monorepo
+3. Sync workflow pushes changes to the split repo
+4. `tag-version.yml` in the split repo creates the `v*` tag
+5. Packagist auto-updates via webhook
+
+The `publish.yml` GitHub Action validates the package and will notify on failure.
 
 ## License
 
