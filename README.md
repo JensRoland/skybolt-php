@@ -245,28 +245,6 @@ class SkyboltExtension extends AbstractExtension
 - PHP 8.1+
 - Vite with `@skybolt/vite-plugin`
 
-## Publishing
-
-This package is maintained in the [Skybolt monorepo](https://github.com/JensRoland/skybolt) and automatically synced to [skybolt-php](https://github.com/JensRoland/skybolt-php).
-
-To publish a new version, run one command from the `packages/php` directory:
-
-```sh
-./scripts/release.sh patch   # 3.1.0 → 3.1.1
-./scripts/release.sh minor   # 3.1.0 → 3.2.0
-./scripts/release.sh major   # 3.1.0 → 4.0.0
-```
-
-This automatically:
-
-1. Bumps the version in `VERSION`, `composer.json`, and `src/Skybolt.php`
-2. Commits and pushes to the monorepo
-3. Sync workflow pushes changes to the split repo
-4. `tag-version.yml` in the split repo creates the `v*` tag
-5. Packagist auto-updates via webhook
-
-The `publish.yml` GitHub Action validates the package and will notify on failure.
-
 ## License
 
 MIT
