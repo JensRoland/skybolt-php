@@ -6,7 +6,7 @@
 #
 # This script:
 # 1. Bumps the version in VERSION file
-# 2. Syncs the version to composer.json and src/Skybolt.php
+# 2. Syncs the version to src/Skybolt.php
 # 3. Commits and pushes the changes (unless --no-push is specified)
 #
 # The split repo's tag-version.yml workflow will automatically create the tag.
@@ -67,16 +67,13 @@ echo "Bumping version: ${CURRENT_VERSION} → ${NEW_VERSION}"
 # Update VERSION file
 echo "$NEW_VERSION" > VERSION
 
-# Update composer.json
-sed -i '' "s/\"version\": \"${CURRENT_VERSION}\"/\"version\": \"${NEW_VERSION}\"/" composer.json
-
 # Update src/Skybolt.php - VERSION constant
 sed -i '' "s/VERSION = '${CURRENT_VERSION}'/VERSION = '${NEW_VERSION}'/" src/Skybolt.php
 
 # Update src/Skybolt.php - @version tag
 sed -i '' "s/@version ${CURRENT_VERSION}/@version ${NEW_VERSION}/" src/Skybolt.php
 
-echo "Updated: VERSION, composer.json, src/Skybolt.php"
+echo "Updated: VERSION, src/Skybolt.php"
 
 # Commit and optionally push
 git add -A
