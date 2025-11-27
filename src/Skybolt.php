@@ -59,9 +59,10 @@ class Skybolt
      * On repeat visit: outputs <link> tag (Service Worker serves from cache)
      *
      * @param string $entry Source file path (e.g., 'src/css/main.css')
+     * @param bool $async Load CSS asynchronously (non-render-blocking)
      * @return string HTML string
      */
-    public function css(string $entry): string
+    public function css(string $entry, bool $async = false): string
     {
         $asset = $this->map['assets'][$entry] ?? null;
 
@@ -73,10 +74,25 @@ class Skybolt
 
         // Client has current version - external link (SW serves from cache)
         if ($this->hasCached($entry, $asset['hash'])) {
+            if ($async) {
+                // Preload + onload swap for non-blocking load
+                return '<link rel="preload" href="' . $this->esc($url) . '" as="style" onload="this.rel=\'stylesheet\'">'
+                    . '<noscript><link rel="stylesheet" href="' . $this->esc($url) . '"></noscript>';
+            }
             return '<link rel="stylesheet" href="' . $this->esc($url) . '">';
         }
 
         // First visit - inline with cache attributes
+        if ($async) {
+            // media="print" trick: browser parses but doesn't apply until onload swaps to "all"
+            return '<style'
+                . ' media="print" onload="this.media=\'all\'"'
+                . ' sb-asset="' . $this->esc($entry) . ':' . $this->esc($asset['hash']) . '"'
+                . ' sb-url="' . $this->esc($url) . '">'
+                . $asset['content']
+                . '</style>';
+        }
+
         return '<style'
             . ' sb-asset="' . $this->esc($entry) . ':' . $this->esc($asset['hash']) . '"'
             . ' sb-url="' . $this->esc($url) . '">'

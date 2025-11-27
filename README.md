@@ -57,15 +57,24 @@ $sb = new Skybolt\Skybolt(
 );
 ```
 
-### `css(string $entry): string`
+### `css(string $entry, bool $async = false): string`
 
 Render CSS asset.
 
 - First visit: Inlines CSS with caching attributes
 - Repeat visit: Outputs `<link>` tag (Service Worker serves from cache)
 
+When `$async` is `true`, CSS loads non-blocking:
+
+- First visit: Uses `media="print"` trick, swaps to `all` on load
+- Repeat visit: Uses `<link rel="preload">` with `onload`
+
 ```php
-<?= $sb->css('src/css/main.css') ?>
+// Blocking (default) - for critical CSS
+<?= $sb->css('src/css/critical.css') ?>
+
+// Non-blocking - for non-critical CSS
+<?= $sb->css('src/css/main.css', async: true) ?>
 ```
 
 ### `script(string $entry, bool $module = true): string`
