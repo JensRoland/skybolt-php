@@ -1,4 +1,5 @@
 name: Tag and Publish
+run-name: Tag and Publish
 
 on:
   push:
