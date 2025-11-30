@@ -11,11 +11,11 @@ namespace Skybolt;
  * optimized HTML tags with intelligent caching via Service Workers.
  *
  * @package Skybolt
- * @version 3.2.0
+ * @version 3.3.0
  */
 class Skybolt
 {
-    public const VERSION = '3.2.0';
+    public const VERSION = '3.3.0';
 
     /** @var array<string, mixed> */
     private array $map;
