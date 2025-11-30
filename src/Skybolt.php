@@ -26,6 +26,9 @@ class Skybolt
     /** @var string|null CDN URL prefix */
     private ?string $cdnUrl;
 
+    /** @var array<string, array{entry: string, hash: string}>|null URL to entry mapping */
+    private ?array $urlToEntry = null;
+
     /**
      * Create a new Skybolt instance
      *
@@ -185,6 +188,12 @@ class Skybolt
      * Call this once in <head> before other Skybolt assets.
      * Outputs config meta tag and client script.
      *
+     * On first visit (or cache miss), the launcher is inlined with sb-asset
+     * and sb-url attributes so the client can cache itself.
+     *
+     * On repeat visits (cache hit), returns an external script tag. The Service
+     * Worker will serve the launcher from cache (~5ms response time).
+     *
      * @return string HTML string
      */
     public function launchScript(): string
@@ -193,8 +202,22 @@ class Skybolt
             'swPath' => $this->map['serviceWorker']['path'] ?? '/skybolt-sw.js',
         ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
 
-        return '<meta name="skybolt-config" content="' . $this->esc($config) . '">' . PHP_EOL
-            . '<script type="module">' . $this->map['client']['script'] . '</script>';
+        $launcher = $this->map['launcher'];
+        $url = $this->resolveUrl($launcher['url']);
+
+        $meta = '<meta name="skybolt-config" content="' . $this->esc($config) . '">' . PHP_EOL;
+
+        if ($this->hasCached('skybolt-launcher', $launcher['hash'])) {
+            // Repeat visit - external script (SW serves from cache)
+            return $meta . '<script type="module" src="' . $this->esc($url) . '"></script>';
+        }
+
+        // First visit - inline with sb-asset and sb-url for self-caching
+        return $meta . '<script type="module"'
+            . ' sb-asset="skybolt-launcher:' . $this->esc($launcher['hash']) . '"'
+            . ' sb-url="' . $this->esc($url) . '">'
+            . $launcher['content']
+            . '</script>';
     }
 
     /**
@@ -218,6 +241,51 @@ class Skybolt
     public function getAssetHash(string $entry): ?string
     {
         return $this->map['assets'][$entry]['hash'] ?? null;
+    }
+
+    /**
+     * Check if an asset URL is currently cached by the client
+     *
+     * This is useful for Chain Lightning integration where we need to check
+     * cache status by URL rather than source path.
+     *
+     * @param string $url The asset URL (e.g., '/assets/main-Abc123.css')
+     * @return bool True if the asset is cached
+     */
+    public function isCachedUrl(string $url): bool
+    {
+        // Build URL to entry mapping if not already built
+        if ($this->urlToEntry === null) {
+            $this->urlToEntry = [];
+            foreach ($this->map['assets'] as $entry => $asset) {
+                $this->urlToEntry[$asset['url']] = [
+                    'entry' => $entry,
+                    'hash' => $asset['hash'],
+                ];
+            }
+        }
+
+        $info = $this->urlToEntry[$url] ?? null;
+        if ($info === null) {
+            return false;
+        }
+
+        return $this->hasCached($info['entry'], $info['hash']);
+    }
+
+    /**
+     * Check if client has a specific entry:hash pair cached.
+     *
+     * Useful for external integrations (like Chain Lightning) that manage
+     * their own assets outside of Skybolt's render-map.
+     *
+     * @param string $entry The entry name (e.g., 'chain-lightning' or 'cl-manifest')
+     * @param string $hash The expected hash value
+     * @return bool True if the entry:hash pair is in the client's cache
+     */
+    public function hasCachedEntry(string $entry, string $hash): bool
+    {
+        return $this->hasCached($entry, $hash);
     }
 
     /**
