@@ -11,17 +11,17 @@ namespace Skybolt;
  * optimized HTML tags with intelligent caching via Service Workers.
  *
  * @package Skybolt
- * @version 3.3.0
+ * @version 3.4.0
  */
 class Skybolt
 {
-    public const VERSION = '3.3.0';
+    public const VERSION = '3.4.0';
 
     /** @var array<string, mixed> */
     private array $map;
 
-    /** @var array<string, string> */
-    private array $clientCache;
+    /** @var CacheDigest Cache Digest for lookup */
+    private CacheDigest $cacheDigest;
 
     /** @var string|null CDN URL prefix */
     private ?string $cdnUrl;
@@ -51,8 +51,12 @@ class Skybolt
         }
 
         $this->map = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
-        $this->clientCache = $this->parseCookie(($cookies ?? $_COOKIE)['sb_assets'] ?? '');
         $this->cdnUrl = $cdnUrl ? rtrim($cdnUrl, '/') : null;
+
+        $cookies = $cookies ?? $_COOKIE;
+
+        // Parse Cache Digest from sb_digest cookie
+        $this->cacheDigest = CacheDigest::fromBase64($cookies['sb_digest'] ?? '');
     }
 
     /**
@@ -310,34 +314,7 @@ class Skybolt
      */
     private function hasCached(string $entry, string $hash): bool
     {
-        return isset($this->clientCache[$entry]) && $this->clientCache[$entry] === $hash;
-    }
-
-    /**
-     * Parse sb_assets cookie into name => hash map
-     *
-     * @return array<string, string>
-     */
-    private function parseCookie(string $cookie): array
-    {
-        if ($cookie === '') {
-            return [];
-        }
-
-        $decoded = urldecode($cookie);
-        $cache = [];
-
-        foreach (explode(',', $decoded) as $pair) {
-            // Find last colon (hash doesn't contain colons, but paths might on Windows)
-            $colonPos = strrpos($pair, ':');
-            if ($colonPos !== false) {
-                $name = substr($pair, 0, $colonPos);
-                $hash = substr($pair, $colonPos + 1);
-                $cache[$name] = $hash;
-            }
-        }
-
-        return $cache;
+        return $this->cacheDigest->lookup("{$entry}:{$hash}");
     }
 
     /**
